@@ -147,7 +147,8 @@ struct CampaignView {
 
 //function to get all created campaigns via CampaignView. Doesn't give info about donators, that's why it works for iteration (no nested mapping)
 function getAllCampaigns() public view returns (CampaignView[] memory) {
-    CampaignView[] memory result = new CampaignView[](numberOfCampaigns);
+    CampaignView[] memory result = new CampaignView[](numberOfCampaigns); /* found a bug that array is returning amont based on total number of campaigns. 
+    When older ones get deleted this number doesnt decrease so it returnes extra elements with 0 in the end. Don't know how to fix.*/
     uint i = 0;
     for (uint j = 0; j <= numberOfCampaigns; j++) {
         if (campaigns[j].campaignID != 0) {
