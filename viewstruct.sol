@@ -55,11 +55,11 @@ contract CrowdfundingCampaign {
             Campaign storage campaign = campaigns[i];
             if (block.timestamp > campaign.deadline && campaign.amountCollected == 0) {
                 delete campaigns[i];
-            }
+            } // delete old and empty campaignes
         }
 
-        uint _campaignID = ++numberOfCampaigns;
-        uint _deadline = block.timestamp + _duration;
+        uint _campaignID = ++numberOfCampaigns; //assign campaignID
+        uint _deadline = block.timestamp + _duration; //calculate deadline based on duration (better, than taking deadline directly, since it doesn't need checks for past time)
 
         campaigns[_campaignID].campaignID = _campaignID;
         campaigns[_campaignID].owner = payable(msg.sender);
@@ -79,15 +79,14 @@ contract CrowdfundingCampaign {
         campaigns[_campaignID].duration,
         campaigns[_campaignID].raisingGoal,
         campaigns[_campaignID].deadline,
-        campaigns[_campaignID].amountCollected
-    );
-        return numberOfCampaigns;
+        campaigns[_campaignID].amountCollected);
+        
+        return numberOfCampaigns; // <-- get total amount of campaigns, so next one will have next ID.
     }
 
     // function to add ETH to a specific campaign, checked if it's still ongoing, stores donator and amount of ETH
-    function donateToCampaign(
-        uint _campaignID
-        ) public payable {
+    function donateToCampaign(uint _campaignID) public payable {
+        
         Campaign storage campaign = campaigns[_campaignID];
         require(campaign.campaignID != 0, "Campaign does not exist.");
         require(block.timestamp < campaign.deadline, "Campaign deadline has passed.");
@@ -100,9 +99,11 @@ contract CrowdfundingCampaign {
         Campaign storage campaign = campaigns[_campaignID];
         require(campaign.campaignID != 0, "Campaign does not exist.");
         require(campaign.amountCollected < campaign.raisingGoal, "Campaign goal has been reached.");
-        // require(block.timestamp > campaign.deadline, "Campaign deadline has not passed."); // <-- refund only if campaign fails
         require(campaign.donators[msg.sender] > 0, "You have not contributed to this campaign.");
-        address payable sender = payable(msg.sender);
+        // require(block.timestamp > campaign.deadline, "Campaign deadline has not passed."); // <-- optional function to refund only if campaign fails
+
+        address payable sender = payable(msg.sender); // <-- assign sender value
+        
         // Refund the caller's contribution
         uint amount = campaign.donators[msg.sender]; // <-- get the transfer value from mapping storage
         (bool sent, ) = sender.call{value: amount}(""); // <-- check if the transfer was successful, return 'sent' on success
@@ -115,16 +116,20 @@ contract CrowdfundingCampaign {
     }
 
     function withdrawFunds(uint _campaignID) public { // <-- only available for Campaign creator, if funds were fully raised
+    
         Campaign storage campaign = campaigns[_campaignID];
         require(campaign.campaignID != 0, "Campaign does not exist.");
         require(campaign.amountCollected >= campaign.raisingGoal, "Campaign goal has not been reached."); // <-- check fund goal
         require(msg.sender == campaign.owner, "Only the campaign creator can withdraw funds."); // <-- check caller's adress, fail if not owner
-        uint commission = campaign.amountCollected * 5 / 100;
-        uint withdrawalAmount = campaign.amountCollected - commission;
+        
+        uint commission = campaign.amountCollected * 5 / 100; // <-- calculate comission
+        uint withdrawalAmount = campaign.amountCollected - commission; // <-- calculate withdrawalAmount
         (bool sent, ) = campaign.owner.call{value: withdrawalAmount}(""); // <-- withdraw funds only for called Campaign, returns 'sent' on success
         require(sent, "ETH Withdrawal failed"); // <-- if no 'sent', return an error
-        (bool commissioned, ) = deployer.call{value: commission}("");
+        
+        (bool commissioned, ) = deployer.call{value: commission}(""); // <-- same but for comission
         require(commissioned, "Commission transfer failed");
+        
         delete campaigns[_campaignID]; // <-- remove our withdrawn Campaign from our mapping storage
     }
 
@@ -140,6 +145,7 @@ struct CampaignView {
     string image;
 }
 
+//function to get all created campaigns via CampaignView. Doesn't give info about donators, that's why it works for iteration (no nested mapping)
 function getAllCampaigns() public view returns (CampaignView[] memory) {
     CampaignView[] memory result = new CampaignView[](numberOfCampaigns);
     uint i = 0;
