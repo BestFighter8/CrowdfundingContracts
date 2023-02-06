@@ -2,6 +2,12 @@
 pragma solidity ^0.8.17;
 
 
+// here everything works, but cannot be accessed by the frontend directly on call. 
+// Only emits struct data on campaign creation and has to be stored elsewhere.
+// Originally would be our contract, but not right now without Backend
+
+
+
 contract CrowdfundingCampaign_Mappings {
 
     address payable public deployer;
