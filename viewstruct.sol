@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
+// best solution for no backend. Everything works, but it required the second 
+// sctruct that is there to show data from the first one and be iterable.
+
 
 contract CrowdfundingCampaign {
 
